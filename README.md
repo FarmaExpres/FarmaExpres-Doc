@@ -4,7 +4,7 @@
 
 Actualmente no contamos con un sistema confiable para controlar el inventario de medicamentos. Esto provoca que no tengamos claridad sobre el stock real, que puedan generarse errores cuando varias personas trabajan al mismo tiempo y que exista el riesgo de vender productos vencidos.
 
-Además, no tenemos un registro seguro y detallado de quién realiza cada movimiento, lo que dificulta detectar y corregir errores. Tampoco hay un control sólido de accesos, lo que pone en riesgo la información.
+Además, no tenemos un registro seguro y detallado de quién realiza cada movimiento, lo que dificulta detectar y corregir errores. Tampoco hay un control sólido de accesos, lo que pone en riesgo la información. En el alcance actual también se incorpora análisis predictivo básico para anticipar medicamentos con riesgo de agotamiento usando datos de inventario procesados en MongoDB.
 
 ---
 
@@ -37,13 +37,13 @@ La versión 1.0 incluye:
 - Alertas de vencimiento  
 - Soporte multiusuario con control de concurrencia  
 - Reportes básicos operativos  
+- Análisis predictivo inicial con MongoDB para apoyar reposición
 
 No se incluyen:
 
 - Integraciones externas  
-- Arquitectura distribuida avanzada  
 - Aplicación móvil  
-- Inteligencia predictiva  
+- Modelos predictivos avanzados o certificados para producción
 
 ---
 
@@ -192,6 +192,10 @@ La Versión 1.0 garantiza:
 
 ## MoSCoW
 [📄 Ver Requerimientos MoSCoW (PDF)](./doc/FarmaExpres_Requerimientos_MoSCoW_v1.0_actualizado.pdf)
+
+## ABP Actualizado
+
+[Ver ABP de FarmaExpres](./ABP_FarmaExpres.md)
 
 
 ### Diagramas 

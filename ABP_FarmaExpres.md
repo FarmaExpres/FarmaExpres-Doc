@@ -1,97 +1,193 @@
 # ABP - FarmaExpres
 
-## 1. Identificacion del proyecto
+## 1. Identificación del Proyecto
 
 **Nombre del proyecto:** FarmaExpres  
-**Tipo de sistema:** Aplicacion web para gestion de inventario farmaceutico  
-**Arquitectura implementada:** Frontend web con React y backend basado en microservicios  
-**Roles implementados:** Administrador, Farmaceutico y Auditor
+**Tipo de sistema:** Aplicación web para gestión de inventario farmacéutico
+**Arquitectura:** Frontend React, API Gateway, microservicios backend, PostgreSQL, MongoDB y Docker
+**Roles funcionales:** Administrador, Farmacéutico y Auditor
 
-FarmaExpres es un sistema orientado a la gestion operativa de una farmacia. La solucion implementada permite administrar usuarios, autenticar el acceso, gestionar medicamentos, controlar entradas y salidas de inventario, consultar movimientos, visualizar alertas, generar reportes, revisar indicadores por rol y ejecutar funciones de auditoria.
+FarmaExpres es un sistema orientado a la operación de una farmacia. Permite administrar usuarios, autenticar accesos, gestionar medicamentos, controlar entradas y salidas de inventario, consultar movimientos, visualizar alertas, generar reportes, revisar auditoría y usar un módulo predictivo NoSQL para apoyar decisiones de reposición.
 
-Este ABP se construye a partir de lo implementado en los repositorios actuales de frontend y backend del proyecto.
+Este documento ABP resume el alcance actual del proyecto con base en los repositorios de backend, frontend, microservicio NoSQL y documentación.
 
-## 2. Problema abordado
+## 2. Problema Abordado
 
-En la operacion de una farmacia se requiere controlar medicamentos, existencias, lotes, vencimientos, entradas, salidas y usuarios responsables de cada accion. Sin un sistema centralizado se dificulta mantener trazabilidad, controlar accesos por rol, detectar productos vencidos o agotados, consultar el historial de movimientos y revisar inconsistencias operativas.
+Una farmacia necesita saber qué medicamentos tiene, cuántas unidades hay disponibles, qué lotes están próximos a vencer, quién realiza cada movimiento y qué productos pueden agotarse pronto. Cuando esta información se maneja de forma manual o dispersa, aparecen problemas como pérdida de trazabilidad, errores de stock, ventas de productos vencidos, falta de control por rol y decisiones tardías de reposición.
 
-FarmaExpres aborda esta necesidad mediante una aplicacion web conectada a servicios backend especializados, con control de acceso, gestion de inventario, alertas, reportes y auditoria.
+FarmaExpres aborda este problema con una solución web distribuida. El sistema centraliza la operación diaria y, adicionalmente, incorpora un microservicio NoSQL para transformar movimientos históricos en información predictiva sencilla y entendible.
 
-## 3. Objetivo general
+## 3. Pregunta Guía
 
-Desarrollar un sistema web distribuido para la gestion de inventario farmaceutico, permitiendo el control de usuarios, medicamentos, stock, movimientos, alertas, reportes y auditoria mediante una arquitectura de microservicios y una interfaz organizada por roles.
+¿Cómo puede FarmaExpres controlar el inventario farmacéutico, mantener trazabilidad por usuario y anticipar necesidades de reposición usando una arquitectura de microservicios con bases de datos relacional y no relacional?
 
-## 4. Objetivos especificos
+## 4. Objetivo General
 
-- Implementar autenticacion de usuarios con tokens JWT.
+Desarrollar un sistema web distribuido para la gestión de inventario farmacéutico, con control de usuarios, medicamentos, stock, movimientos, alertas, reportes, auditoría y análisis predictivo básico apoyado en MongoDB.
+
+## 5. Objetivos Específicos
+
+- Implementar autenticación de usuarios mediante JWT y refresh token.
 - Gestionar usuarios y roles desde la interfaz administrativa.
 - Registrar, consultar, actualizar y desactivar medicamentos.
-- Controlar entradas y salidas de inventario.
-- Consultar el historial de movimientos.
-- Visualizar alertas de medicamentos vencidos, proximos a vencer, con bajo stock y agotados.
-- Generar reportes de inventario, movimientos, vencimientos, bajo stock y actividad por usuario.
-- Implementar un modulo de auditoria para revisar historicos, inconsistencias, observaciones y metricas.
-- Centralizar el acceso a los servicios mediante un API Gateway.
-- Versionar la base de datos mediante migraciones Liquibase.
+- Controlar entradas y salidas de inventario con validaciones de stock.
+- Registrar trazabilidad de movimientos por usuario, fecha, lote y motivo.
+- Visualizar alertas de productos vencidos, próximos a vencer, con bajo stock y agotados.
+- Generar reportes operativos de inventario, movimientos, vencimientos, bajo stock y actividad por usuario.
+- Implementar auditoría para revisar históricos, inconsistencias, observaciones y métricas.
+- Centralizar el acceso a servicios mediante API Gateway.
+- Versionar la base relacional con Liquibase.
+- Incorporar MongoDB para almacenar datos crudos, datos limpios, métricas y predicciones.
+- Estimar demanda futura y riesgo de agotamiento con un modelo predictivo inicial.
 
-## 5. Alcance implementado
+## 6. Alcance Implementado
 
-### 5.1 Frontend
+### 6.1 Frontend
 
-El frontend esta implementado como una aplicacion React con Vite. La estructura esta organizada por modulos funcionales:
+El frontend está implementado con React y Vite. La estructura está organizada por módulos funcionales:
 
-- Autenticacion.
+- Autenticación.
 - Dashboard.
-- Gestion de usuarios.
-- Gestion de medicamentos.
+- Gestión de usuarios.
+- Gestión de medicamentos.
 - Entradas de inventario.
 - Salidas de inventario.
 - Movimientos.
 - Alertas.
 - Reportes.
 - Control de stock.
-- Auditoria.
+- Auditoría.
+- Predicciones de inventario.
 - Layout y componentes compartidos.
 
-La navegacion se adapta al rol autenticado:
+La navegación se adapta al rol autenticado:
 
-| Rol | Modulos visibles implementados |
+| Rol | Módulos visibles implementados |
 | --- | --- |
-| Administrador | Dashboard, Medicamentos, Usuarios, Movimientos, Reportes, Alertas, Control de stock |
-| Farmaceutico | Dashboard, Inventario, Entradas, Salidas, Alertas, Control de stock |
-| Auditor | Dashboard, Inventario, Movimientos, Reportes, Auditoria |
+| Administrador | Dashboard, Medicamentos, Usuarios, Movimientos, Reportes, Alertas, Control de stock y Predicciones |
+| Farmacéutico | Dashboard, Inventario, Entradas, Salidas, Alertas, Control de stock y Predicciones en modo consulta |
+| Auditor | Dashboard, Inventario, Movimientos, Reportes, Auditoría y Predicciones |
 
-### 5.2 Backend
+### 6.2 Backend Relacional
 
-El backend esta implementado con una arquitectura de microservicios:
+El backend principal está organizado en microservicios:
 
-| Servicio | Responsabilidad implementada |
+| Servicio | Responsabilidad |
 | --- | --- |
-| `api-gateway` | Punto de entrada centralizado, seguridad JWT, enrutamiento y fallbacks |
-| `auth-service` | Autenticacion, refresh token, logout, usuarios, roles y bitacora |
-| `inventory-service` | Medicamentos, lotes, movimientos, entradas, salidas, reportes y alertas de inventario |
-| `alert-service` | Alertas de inventario consumiendo informacion del servicio de inventario |
-| `audit-service` | Historial de auditoria, inconsistencias, observaciones, metricas y casos manuales |
+| `api-gateway` | Punto de entrada, validación JWT, enrutamiento y fallbacks |
+| `auth-service` | Autenticación, usuarios, roles, refresh token, logout y bitácora |
+| `inventory-service` | Medicamentos, lotes, movimientos, entradas, salidas, reportes y snapshot analítico |
+| `alert-service` | Alertas de inventario consumiendo información de inventario |
+| `audit-service` | Historial de auditoría, inconsistencias, observaciones, métricas y casos manuales |
 
-La persistencia usa PostgreSQL y migraciones Liquibase separadas por dominio: autenticacion, inventario y auditoria.
+La persistencia relacional usa PostgreSQL y Liquibase por dominio: autenticación, inventario y auditoría.
 
-## 6. Funcionalidades implementadas
+### 6.3 Microservicio NoSQL Predictivo
 
-### 6.1 Autenticacion y sesion
+El módulo predictivo se implementa como microservicio independiente en Python con FastAPI y MongoDB. No reemplaza el backend principal; lo complementa para análisis.
 
-El sistema permite iniciar sesion mediante correo y contrasena. El backend genera tokens JWT y refresh tokens. El frontend conserva la sesion, protege rutas privadas y redirige usuarios no autenticados al login.
+Responsabilidades principales:
 
-Endpoints implementados principales:
+- Recibir datos desde `inventory-service`.
+- Guardar datos crudos en MongoDB.
+- Limpiar y normalizar registros.
+- Calcular demanda esperada de medicamentos.
+- Estimar riesgo de agotamiento.
+- Exponer predicciones por API.
+- Mostrar resultados en el frontend principal.
+
+## 7. Proceso Relacional a NoSQL
+
+El flujo profesional usado evita que el microservicio NoSQL consulte directamente las tablas de PostgreSQL. La propiedad de los datos de inventario se respeta a través de `inventory-service`.
+
+```mermaid
+flowchart TD
+    A["Usuario en frontend"] --> B["API Gateway"]
+    B --> C["prediction-service"]
+    C --> D["inventory-service"]
+    D --> E["PostgreSQL: product, batch, motion"]
+    E --> D
+    D --> C
+    C --> F["MongoDB: raw_data"]
+    F --> G["Limpieza de datos"]
+    G --> H["MongoDB: cleaned_data"]
+    H --> I["Modelo de promedio móvil"]
+    I --> J["MongoDB: predictions y model_metrics"]
+    J --> K["Frontend: tablero de predicciones"]
+```
+
+Datos tomados del backend relacional:
+
+- `product`: medicamento, código, categoría, stock, precio y stock mínimo.
+- `batch`: lotes, fecha de vencimiento y stock disponible.
+- `motion`: entradas y salidas de inventario.
+
+Como el proyecto aún no cuenta con una tabla formal de ventas u órdenes, las salidas de inventario (`Exit`) se usan como aproximación de demanda.
+
+## 8. Tratamiento de Datos
+
+El tratamiento de datos se realiza antes de entrenar o recalcular predicciones:
+
+1. Sincronizar datos desde `inventory-service`.
+2. Guardar una copia cruda en `raw_data`.
+3. Eliminar duplicados.
+4. Validar identificadores de producto.
+5. Validar cantidades nulas, negativas o inválidas.
+6. Normalizar nombres de medicamentos.
+7. Convertir fechas a formato estándar.
+8. Marcar registros incompletos con banderas de calidad.
+9. Guardar registros procesados en `cleaned_data`.
+10. Calcular predicciones y guardar métricas.
+
+Colecciones MongoDB:
+
+| Colección | Uso |
+| --- | --- |
+| `raw_data` | Datos crudos sincronizados desde inventario |
+| `cleaned_data` | Datos validados y normalizados |
+| `products_snapshot` | Estado relevante de productos y stock |
+| `predictions` | Resultado del modelo por medicamento |
+| `model_metrics` | Métricas de limpieza y entrenamiento |
+
+## 9. Modelo Predictivo
+
+El modelo inicial usa un enfoque estadístico simple: promedio móvil de 30 días.
+
+Proceso:
+
+1. Agrupa salidas de inventario por medicamento.
+2. Suma las salidas recientes de los últimos 30 días.
+3. Calcula demanda diaria promedio.
+4. Proyecta la demanda para los próximos 7 días.
+5. Compara demanda proyectada contra stock disponible.
+6. Clasifica el riesgo:
+   - `OUT_OF_STOCK`: producto agotado.
+   - `HIGH`: la demanda esperada puede superar el stock disponible.
+   - `MEDIUM`: el stock está por debajo o cerca del mínimo.
+   - `LOW`: no se detecta riesgo inmediato.
+
+Este modelo es explicable y adecuado para una primera versión. No pretende ser un modelo avanzado de ciencia de datos; sirve como base funcional para demostrar extracción, limpieza, almacenamiento NoSQL y predicción inicial.
+
+## 10. Funcionalidades Implementadas
+
+### 10.1 Autenticación y Sesión
+
+- Inicio de sesión con correo y contraseña.
+- Generación de JWT y refresh token.
+- Protección de rutas privadas.
+- Cierre de sesión.
+
+Endpoints principales:
 
 - `POST /api/auth/login`
 - `POST /api/auth/refresh`
 - `POST /api/auth/logout`
 
-### 6.2 Gestion de usuarios
+### 10.2 Gestión de Usuarios
 
-El sistema permite consultar usuarios, crear usuarios, actualizar datos, cambiar contrasena, bloquear, desbloquear y desactivar usuarios. Esta funcionalidad esta disponible en el frontend para el rol Administrador.
+Permite consultar, crear, actualizar, cambiar contraseña, bloquear, desbloquear y desactivar usuarios.
 
-Endpoints implementados principales:
+Endpoints principales:
 
 - `GET /api/users`
 - `POST /api/users`
@@ -101,13 +197,11 @@ Endpoints implementados principales:
 - `PUT /api/users/{id}/unlock`
 - `DELETE /api/users/{id}`
 
-### 6.3 Gestion de medicamentos e inventario
+### 10.3 Medicamentos e Inventario
 
-El sistema permite administrar medicamentos, consultar productos activos, consultar todos los productos, ver detalle por identificador, registrar medicamentos, actualizar medicamentos y realizar eliminacion logica.
+Permite administrar medicamentos, lotes, inventario activo, resumen de stock y consulta FEFO.
 
-Tambien se implementa consulta por lotes, resumen de inventario activo, tabla de inventario activo y vista FEFO del inventario.
-
-Endpoints implementados principales:
+Endpoints principales:
 
 - `GET /api/products`
 - `GET /api/products/all`
@@ -122,130 +216,53 @@ Endpoints implementados principales:
 - `GET /api/products/{productId}/batches`
 - `POST /api/products/{productId}/batches`
 
-### 6.4 Entradas y salidas de inventario
+### 10.4 Entradas y Salidas
 
-El sistema permite registrar entradas y salidas de inventario desde el frontend. Las entradas aumentan existencias y las salidas descuentan stock. El backend cuenta con endpoints diferenciados para ambos movimientos.
+El sistema permite registrar entradas y salidas desde el frontend. Las salidas descuentan stock y se registran como movimientos.
 
-Endpoints implementados principales:
+Endpoints principales:
 
 - `POST /api/movements/entries`
 - `POST /api/movements/exits`
 - `POST /api/movements/consume-fefo`
 
-### 6.5 Historial de movimientos
+### 10.5 Alertas y Reportes
 
-El sistema permite consultar movimientos de inventario, ver movimientos por identificador, filtrar por tipo, fecha y usuario, consultar entradas, salidas y movimientos actualizados.
+Incluye alertas de productos vencidos, próximos a vencer, bajo stock y agotados. También incluye reportes operativos para inventario, movimientos, vencimientos, bajo stock y usuarios.
 
-Endpoints implementados principales:
+### 10.6 Auditoría
 
-- `GET /api/movements`
-- `GET /api/movements/{id}`
-- `GET /api/movements/filter-by-user`
-- `GET /api/movements/entrance`
-- `GET /api/movements/exit`
-- `GET /api/movements/updated`
-- `PATCH /api/movements/{id}/audit-status`
+El módulo de auditoría permite revisar historial, inconsistencias, observaciones, métricas y casos manuales para el rol Auditor.
 
-### 6.6 Alertas
+### 10.7 Predicciones
 
-El sistema implementa un centro de alertas con secciones para:
+El módulo `Predicciones` muestra:
 
-- Medicamentos vencidos.
-- Medicamentos proximos a vencer.
-- Medicamentos con bajo stock.
-- Productos agotados.
+- Estado del microservicio.
+- Conteo de datos crudos, limpios y predicciones.
+- Botones para sincronizar, limpiar y recalcular.
+- Demanda esperada por medicamento.
+- Riesgo de agotamiento.
+- Prioridad de reposición.
+- Métricas de limpieza y entrenamiento.
 
-El frontend muestra conteo de alertas en el menu lateral para los roles con acceso. El backend expone alertas desde inventario y tambien existe un microservicio de alertas en Node.js.
+Endpoints principales:
 
-Endpoints implementados principales en inventario:
+- `GET /api/predictions/health`
+- `POST /api/predictions/ingest`
+- `POST /api/predictions/clean`
+- `POST /api/predictions/train`
+- `POST /api/predictions/recalculate`
+- `GET /api/predictions`
+- `GET /api/predictions/{productId}`
+- `GET /api/predictions/metrics`
 
-- `GET /api/inventory/alerts/low-stock`
-- `GET /api/inventory/alerts/out-of-stock`
-- `GET /api/inventory/alerts/expired`
-- `GET /api/inventory/alerts/expiring-soon`
-- `GET /api/inventory/alerts/expiring-range`
-
-### 6.7 Reportes
-
-El frontend implementa pestañas de reportes para:
-
-- Inventario actual.
-- Movimientos.
-- Proximos a vencer.
-- Bajo stock.
-- Por usuario.
-
-Tambien existen utilidades frontend para exportacion de reportes.
-
-Endpoints implementados principales:
-
-- `GET /api/reports/inventory-batches`
-- `GET /api/reports/movements-batches`
-- `GET /api/inventory/reports/expiring-products`
-- `GET /api/inventory/reports/batches`
-- `GET /api/movements/report/users-activity`
-- `GET /api/products/low-stock`
-- `GET /api/products/low-stock/critical`
-- `GET /api/products/low-stock/alert`
-- `GET /api/products/out-of-stock`
-
-### 6.8 Control de stock
-
-El sistema cuenta con modulo de control de stock accesible para Administrador y Farmaceutico. Este modulo consume informacion del inventario para revisar estado de productos, niveles de stock y productos en condicion critica o de alerta.
-
-### 6.9 Dashboard
-
-El frontend cuenta con dashboard disponible para los tres roles implementados. Este modulo resume informacion operativa del sistema segun la sesion activa y datos disponibles desde los servicios.
-
-### 6.10 Auditoria
-
-El sistema cuenta con un modulo de auditoria para el rol Auditor. Permite consultar historial, inconsistencias, observaciones y metricas. Tambien permite recalcular auditoria, crear casos manuales, actualizar notas, cambiar estados y quitar marcas manuales.
-
-Endpoints implementados principales:
-
-- `GET /api/audit/history`
-- `GET /api/audit/inconsistencies`
-- `GET /api/audit/observations`
-- `GET /api/audit/metrics`
-- `POST /api/audit/recalculate`
-- `POST /api/audit/cases/manual`
-- `PATCH /api/audit/cases/{id}/note`
-- `PATCH /api/audit/cases/{id}/status`
-- `DELETE /api/audit/cases/{id}/manual-flag`
-
-### 6.11 Estado de servicios
-
-Los servicios backend implementan endpoints de estado para validar disponibilidad.
-
-Endpoints implementados:
-
-- `GET /status` en `api-gateway`
-- `GET /status` en `auth-service`
-- `GET /status` en `inventory-service`
-- `GET /status` en `audit-service`
-- `GET /status` en `alert-service`
-
-## 7. Arquitectura implementada
-
-La solucion usa una arquitectura distribuida basada en servicios separados. El frontend consume el backend mediante un gateway o rutas relativas configuradas por ambiente.
-
-Componentes principales:
-
-- Frontend React/Vite.
-- API Gateway en Spring Boot.
-- Servicios Spring Boot para autenticacion, inventario y auditoria.
-- Servicio Node.js/Express para alertas.
-- PostgreSQL como base de datos.
-- Liquibase para versionamiento de esquema.
-- Docker Compose para levantar el entorno.
-
-## 8. Tecnologias implementadas
+## 11. Tecnologías Implementadas
 
 ### Frontend
 
 - React.
 - Vite.
-- JavaScript ES Modules.
 - React Router.
 - Axios.
 - Tailwind CSS.
@@ -259,42 +276,45 @@ Componentes principales:
 - Spring Security.
 - Spring Data JPA.
 - Spring Cloud Gateway.
-- Resilience4j en API Gateway.
-- JWT con JJWT.
+- Resilience4j.
+- JWT.
+- Node.js y Express.
 - PostgreSQL.
 - Liquibase.
-- Node.js.
-- Express.
 - Docker Compose.
 
-## 9. Evidencias disponibles en los repositorios
+### Módulo Predictivo
 
-### Backend
+- Python.
+- FastAPI.
+- MongoDB.
+- PyMongo.
+- Promedio móvil como modelo inicial.
 
-En el repositorio backend existen:
+## 12. MoSCoW del Alcance Actual
 
-- Codigo fuente de los microservicios.
-- Dockerfiles por servicio.
-- `docker-compose.yml` general.
-- Migraciones Liquibase por dominio.
-- Pruebas para servicios Spring Boot.
-- Pruebas para `alert-service`.
-- Documentacion de ADR.
-- Documentacion de cambios por historias de usuario.
+| Categoría | Elementos |
+| --- | --- |
+| Must have | Autenticación, inventario, movimientos, alertas, reportes, auditoría, Docker, gateway, PostgreSQL y MongoDB |
+| Should have | Predicciones de demanda, limpieza de datos, métricas, tablero integrado y documentación de flujo NoSQL |
+| Could have | Modelos más avanzados, estacionalidad, evaluación con históricos más amplios y comparación entre algoritmos |
+| Won't have por ahora | Aplicación móvil, integración con proveedores externos, facturación formal y predicción productiva certificada |
 
-### Frontend
+## 13. Historias Relacionadas
 
-En el repositorio frontend existen:
+- `HU-MDRT-001`: control de concurrencia en movimientos de inventario.
+- `HU-MDRT-002`: integración del microservicio predictivo NoSQL, gateway e ingesta desde inventario.
+- `HU-MDRT-003`: visualización de predicciones dentro del frontend principal.
 
-- Codigo fuente modular por funcionalidad.
-- Servicios de consumo de API.
-- Control de rutas protegidas.
-- Control de acceso por rol.
-- Documentacion funcional por HU.
-- Capturas de evidencia por modulo.
-- Dockerfile, configuracion Nginx y Docker Compose.
+## 14. Evidencias en Repositorios
 
-## 10. Resultado del proyecto
+| Repositorio | Evidencia |
+| --- | --- |
+| Backend | Gateway, snapshot analítico, Docker, Liquibase, pruebas y documentación por HU |
+| Frontend | Módulo `Predicciones`, permisos por rol, consumo por gateway y documentación por HU |
+| Micro NoSQL | FastAPI, MongoDB, limpieza, predicción, métricas, Docker Compose y libro NoSQL |
+| Documentación | ABP, requerimientos, guías y documentos funcionales |
 
-El resultado implementado es una aplicacion web funcional para gestion farmaceutica con separacion entre interfaz de usuario y servicios backend. El sistema permite operar inventario, usuarios, movimientos, alertas, reportes, control de stock y auditoria, manteniendo acceso diferenciado por rol y comunicacion centralizada a traves de servicios backend.
+## 15. Resultado del Proyecto
 
+FarmaExpres queda como una aplicación web funcional para gestión farmacéutica con arquitectura distribuida. El sistema controla inventario, usuarios, movimientos, alertas, reportes y auditoría. Además, incorpora un módulo NoSQL predictivo que transforma movimientos históricos en alertas de demanda y riesgo de agotamiento, manteniendo la integración con el backend principal mediante API Gateway e `inventory-service`.
