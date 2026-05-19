@@ -1,0 +1,59 @@
+name: Audit GitHub Workflows
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - ".github/workflows/**"
+
+jobs:
+  audit-workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Scan workflow changes for dangerous commands
+        shell: bash
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+
+          patterns = [
+              r"\bgh\s+api\b.*\b-X\s+DELETE\b",
+              r"\bcurl\b.*\b-X\s+DELETE\b",
+              r"\bhttp\b.*\bDELETE\b",
+              r"\baz\s+rest\b.*\b--method\s+delete\b",
+              r"\baws\s+\w+\b.*\bdelete\b",
+              r"\bkubectl\b.*\bdelete\b",
+              r"\brm\s+-rf\s+/\b",
+              r"\bgh\s+repo\s+delete\b",
+              r"\bgh\s+org\s+delete\b",
+              r"\bterraform\s+destroy\b",
+          ]
+
+          combined = re.compile("|".join(patterns), re.IGNORECASE)
+          workflow_dir = Path(".github/workflows")
+          matches = []
+
+          for path in workflow_dir.glob("**/*"):
+              if path.is_file():
+                  text = path.read_text(encoding="utf-8", errors="ignore")
+                  for i, line in enumerate(text.splitlines(), start=1):
+                      if combined.search(line):
+                          matches.append(f"{path}:{i}:{line.strip()}")
+
+          if matches:
+              print("Dangerous commands detected in workflow files:")
+              for match in matches:
+                  print(f"- {match}")
+              raise SystemExit(1)
+
+          print("No dangerous commands detected in workflow files.")
+          PY
