@@ -49,20 +49,17 @@ No se incluyen:
 
 ## Despliegue local por ambiente
 
-FarmaExpres se ejecuta por ambiente usando archivos `.env` y Docker Compose. Para evaluar el sistema completo, incluyendo el módulo predictivo NoSQL, se deben levantar los repositorios en este orden:
+FarmaExpres se ejecuta por ambiente usando archivos `.env` y Docker Compose. Para evaluar el sistema completo, incluyendo el módulo predictivo NoSQL, se deben levantar los repositorios en este orden. El backend ya incluye MongoDB y `prediction-service`, por lo que no se necesita ejecutar un repositorio NoSQL aparte:
 
 ```bash
 cd FarmaExpres_Backend
-docker compose --env-file .env.dev up -d --build
-
-cd ../FarmaExpres-Micro-NoSQL
 docker compose --env-file .env.dev up -d --build
 
 cd ../FarmaExpres-Frontend/frontend
 docker compose --env-file .env.dev up -d --build
 ```
 
-Para QA o main se cambia el archivo de entorno en los tres repositorios:
+Para QA o main se cambia el archivo de entorno en backend y frontend:
 
 ```bash
 docker compose --env-file .env.qa up -d --build
@@ -78,6 +75,11 @@ Puertos principales:
 | main | `5000` | `10080` | `10085` | `47017` |
 
 El frontend consume `/api/predictions` por el gateway. MongoDB no se expone al usuario final; queda para persistencia analítica y revisión técnica con herramientas como MongoDB Compass.
+
+En Docker Desktop se espera ver dos proyectos principales por ambiente:
+
+- `farmaexpres-dev`: PostgreSQL, microservicios backend, API Gateway, MongoDB y `prediction-service`.
+- `farmaexpres-frontend-dev`: aplicación web principal.
 
 ---
 

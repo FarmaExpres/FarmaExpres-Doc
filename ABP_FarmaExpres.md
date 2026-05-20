@@ -3,19 +3,19 @@
 ## 1. Identificación del Proyecto
 
 **Nombre del proyecto:** FarmaExpres  
-**Tipo de sistema:** Aplicación web para gestión de inventario farmacéutico
-**Arquitectura:** Frontend React, API Gateway, microservicios backend, PostgreSQL, MongoDB y Docker
+**Tipo de sistema:** Aplicación web para gestión de inventario farmacéutico  
+**Arquitectura:** Frontend React, API Gateway, microservicios backend, PostgreSQL, MongoDB, servicio predictivo Python y Docker
 **Roles funcionales:** Administrador, Farmacéutico y Auditor
 
 FarmaExpres es un sistema orientado a la operación de una farmacia. Permite administrar usuarios, autenticar accesos, gestionar medicamentos, controlar entradas y salidas de inventario, consultar movimientos, visualizar alertas, generar reportes, revisar auditoría y usar un módulo predictivo NoSQL para apoyar decisiones de reposición.
 
-Este documento ABP resume el alcance actual del proyecto con base en los repositorios de backend, frontend, microservicio NoSQL y documentación.
+Este documento ABP resume el alcance actual del proyecto con base en los repositorios de backend, frontend y documentación. El módulo predictivo NoSQL ya no se ejecuta como un repositorio aparte para la operación local; quedó integrado dentro del `docker-compose.yml` del backend como `prediction-service` y `mongo`.
 
 ## 2. Problema Abordado
 
 Una farmacia necesita saber qué medicamentos tiene, cuántas unidades hay disponibles, qué lotes están próximos a vencer, quién realiza cada movimiento y qué productos pueden agotarse pronto. Cuando esta información se maneja de forma manual o dispersa, aparecen problemas como pérdida de trazabilidad, errores de stock, ventas de productos vencidos, falta de control por rol y decisiones tardías de reposición.
 
-FarmaExpres aborda este problema con una solución web distribuida. El sistema centraliza la operación diaria y, adicionalmente, incorpora un microservicio NoSQL para transformar movimientos históricos en información predictiva sencilla y entendible.
+FarmaExpres aborda este problema con una solución web distribuida. El sistema centraliza la operación diaria y, adicionalmente, incorpora un servicio predictivo NoSQL dentro del stack del backend para transformar movimientos históricos en información sencilla y entendible sobre demanda y riesgo de agotamiento.
 
 ## 3. Pregunta Guía
 
@@ -82,9 +82,9 @@ El backend principal está organizado en microservicios:
 
 La persistencia relacional usa PostgreSQL y Liquibase por dominio: autenticación, inventario y auditoría.
 
-### 6.3 Microservicio NoSQL Predictivo
+### 6.3 Servicio NoSQL Predictivo
 
-El módulo predictivo se implementa como microservicio independiente en Python con FastAPI y MongoDB. No reemplaza el backend principal; lo complementa para análisis.
+El módulo predictivo se implementa como un servicio Python con FastAPI y MongoDB dentro del repositorio del backend. No reemplaza los microservicios principales; los complementa para análisis. En Docker se levanta en el mismo proyecto del backend junto con PostgreSQL, `api-gateway`, `inventory-service`, `auth-service`, `audit-service` y `alert-service`.
 
 Responsabilidades principales:
 
@@ -96,14 +96,22 @@ Responsabilidades principales:
 - Exponer predicciones por API.
 - Mostrar resultados en el frontend principal.
 
+Control por rol:
+
+| Rol | Permiso en predicciones |
+| --- | --- |
+| Administrador | Consulta resultados y ejecuta sincronización, limpieza y entrenamiento |
+| Auditor | Consulta resultados y ejecuta sincronización, limpieza y entrenamiento |
+| Farmacéutico | Consulta el tablero y las predicciones, sin ejecutar procesos de carga o entrenamiento |
+
 ## 7. Proceso Relacional a NoSQL
 
-El flujo profesional usado evita que el microservicio NoSQL consulte directamente las tablas de PostgreSQL. La propiedad de los datos de inventario se respeta a través de `inventory-service`.
+El flujo usado evita que el servicio predictivo consulte directamente las tablas de PostgreSQL. La propiedad de los datos de inventario se respeta a través de `inventory-service`, y el acceso externo se concentra en `api-gateway`.
 
 ```mermaid
 flowchart TD
     A["Usuario en frontend"] --> B["API Gateway"]
-    B --> C["prediction-service"]
+    B --> C["prediction-service (FastAPI en backend)"]
     C --> D["inventory-service"]
     D --> E["PostgreSQL: product, batch, motion"]
     E --> D
@@ -290,23 +298,38 @@ Endpoints principales:
 - MongoDB.
 - PyMongo.
 - Promedio móvil como modelo inicial.
+- Docker Compose integrado en el backend.
 
 ### Despliegue por ambiente
 
-El despliegue local integrado se realiza en tres pasos, siempre usando el mismo ambiente en todos los repositorios:
+El despliegue local integrado se realiza con dos repositorios operativos: backend y frontend. El backend levanta también MongoDB y `prediction-service`; por eso ya no se debe entrar a un repositorio aparte para ejecutar el módulo NoSQL.
 
 ```bash
 cd FarmaExpres_Backend
-docker compose --env-file .env.dev up -d --build
-
-cd ../FarmaExpres-Micro-NoSQL
 docker compose --env-file .env.dev up -d --build
 
 cd ../FarmaExpres-Frontend/frontend
 docker compose --env-file .env.dev up -d --build
 ```
 
-Para `qa` o `main`, se reemplaza `.env.dev` por `.env.qa` o `.env.main`. El microservicio predictivo se une a la red Docker del backend del mismo ambiente mediante `BACKEND_NETWORK`, por ejemplo `farmaexpres-dev_default` en desarrollo.
+Para `qa` o `main`, se reemplaza `.env.dev` por `.env.qa` o `.env.main` en ambos repositorios. Si se reconstruye el backend, se recomienda reconstruir después el frontend para que el contenedor web quede conectado a la red Docker actual del ambiente.
+
+Organización esperada en Docker Desktop:
+
+```text
+farmaexpres-dev
+  postgres
+  auth-service
+  inventory-service
+  audit-service
+  alert-service
+  api-gateway
+  prediction-service
+  mongo
+
+farmaexpres-frontend-dev
+  frontend
+```
 
 Puertos principales:
 
@@ -337,7 +360,7 @@ Puertos principales:
 | --- | --- |
 | Backend | Gateway, snapshot analítico, Docker, Liquibase, pruebas y documentación por HU |
 | Frontend | Módulo `Predicciones`, permisos por rol, consumo por gateway y documentación por HU |
-| Micro NoSQL | FastAPI, MongoDB, limpieza, predicción, métricas, Docker Compose y libro NoSQL |
+| Backend predictivo | `prediction-service`, MongoDB, limpieza, predicción, métricas, Docker Compose integrado y documentación por HU |
 | Documentación | ABP, requerimientos, guías y documentos funcionales |
 
 ## 15. Resultado del Proyecto
