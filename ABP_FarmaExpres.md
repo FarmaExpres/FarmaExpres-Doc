@@ -291,6 +291,31 @@ Endpoints principales:
 - PyMongo.
 - Promedio móvil como modelo inicial.
 
+### Despliegue por ambiente
+
+El despliegue local integrado se realiza en tres pasos, siempre usando el mismo ambiente en todos los repositorios:
+
+```bash
+cd FarmaExpres_Backend
+docker compose --env-file .env.dev up -d --build
+
+cd ../FarmaExpres-Micro-NoSQL
+docker compose --env-file .env.dev up -d --build
+
+cd ../FarmaExpres-Frontend/frontend
+docker compose --env-file .env.dev up -d --build
+```
+
+Para `qa` o `main`, se reemplaza `.env.dev` por `.env.qa` o `.env.main`. El microservicio predictivo se une a la red Docker del backend del mismo ambiente mediante `BACKEND_NETWORK`, por ejemplo `farmaexpres-dev_default` en desarrollo.
+
+Puertos principales:
+
+| Ambiente | Frontend | Gateway | API predictiva directa | MongoDB |
+| --- | --- | --- | --- | --- |
+| dev | `3000` | `8080` | `8085` | `27017` |
+| qa | `4000` | `9080` | `9085` | `37017` |
+| main | `5000` | `10080` | `10085` | `47017` |
+
 ## 12. MoSCoW del Alcance Actual
 
 | Categoría | Elementos |

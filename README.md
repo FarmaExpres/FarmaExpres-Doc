@@ -47,6 +47,40 @@ No se incluyen:
 
 ---
 
+## Despliegue local por ambiente
+
+FarmaExpres se ejecuta por ambiente usando archivos `.env` y Docker Compose. Para evaluar el sistema completo, incluyendo el módulo predictivo NoSQL, se deben levantar los repositorios en este orden:
+
+```bash
+cd FarmaExpres_Backend
+docker compose --env-file .env.dev up -d --build
+
+cd ../FarmaExpres-Micro-NoSQL
+docker compose --env-file .env.dev up -d --build
+
+cd ../FarmaExpres-Frontend/frontend
+docker compose --env-file .env.dev up -d --build
+```
+
+Para QA o main se cambia el archivo de entorno en los tres repositorios:
+
+```bash
+docker compose --env-file .env.qa up -d --build
+docker compose --env-file .env.main up -d --build
+```
+
+Puertos principales:
+
+| Ambiente | Frontend | Gateway | Prediction API directa | MongoDB |
+| --- | --- | --- | --- | --- |
+| dev | `3000` | `8080` | `8085` | `27017` |
+| qa | `4000` | `9080` | `9085` | `37017` |
+| main | `5000` | `10080` | `10085` | `47017` |
+
+El frontend consume `/api/predictions` por el gateway. MongoDB no se expone al usuario final; queda para persistencia analítica y revisión técnica con herramientas como MongoDB Compass.
+
+---
+
 # 2. Descripción General del Sistema
 
 FarmaExpres es un sistema web orientado a la gestión de inventario farmacéutico que permite:
